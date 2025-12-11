@@ -1,0 +1,5 @@
+# Python 相關檔案
+__pycache__/
+*.pyc
+venv/
+.venv/
