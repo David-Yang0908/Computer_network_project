@@ -1,0 +1,17 @@
+{
+    "total_score": 273.0,
+    "incentive_score": 276.0,
+    "penalty_score": -3.0,
+    "input_parameters": {
+        "r": 30.0,
+        "T_est": 8.0,
+        "P": 1.0,
+        "I": 4.0,
+        "D": 3.0,
+        "c": 1.0,
+        "mu": 1.2,
+        "T_distract": 0.1,
+        "T_phone": 0.0
+    },
+    "description": "PLAN D 甜甜圈計畫 評分模型計算結果"
+}

@@ -1,0 +1,20 @@
+{
+    "output_file_template": "images\\merge\\merge_donut_{timestamp}.png",
+    "segments": [
+        {
+            "topic_id": "task_20251213_041547",
+            "image_path_template": "images/donut/donut_{topic_id}.png",
+            "score_json_template": "json/task/{topic_id}/output.json" 
+        },
+        {
+            "topic_id": "task_20251213_043812",
+            "image_path_template": "images/donut/donut_{topic_id}.png",
+            "score_json_template": "json/task/{topic_id}/output.json"
+        },
+        {
+            "topic_id": "task_20251213_045454",
+            "image_path_template": "images/donut/donut_{topic_id}.png",
+            "score_json_template": "json/task/{topic_id}/output.json"
+        }
+    ]
+}

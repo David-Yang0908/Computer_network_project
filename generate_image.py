@@ -4,7 +4,22 @@ import torch
 from PIL import Image
 from diffusers import StableDiffusionXLPipeline
 
-# --- 1. 環境準備與記憶體清理 ---
+# --- 1. 設定參數與路徑 ---
+
+TASK = "task_20251213_045454"
+
+# 🚨 模型本地資料夾路徑 (根據您的要求修改)
+SDXL_MODEL_PATH = r"\\MSI\sdxl_base"
+
+# 輸入檔案路徑 (與 .py 腳本相同目錄)
+POSITIVE_PROMPT_INPUT_FILE = f"prompt\\positive\\positive_{TASK}.txt"
+# 設定 Negative Prompt (可根據需求修改)
+NEGATIVE_PROMPT_INPUT_FILE = f"prompt\\negative\\negative_{TASK}.txt"
+
+# 輸出目錄路徑 (當前目錄下的 'image' 資料夾)
+IMAGE_OUTPUT_FILENAME = f"images\\generated_images\\generated_image_{TASK}.png"
+
+# --- 2. 環境準備與記憶體清理 ---
 
 # 記憶體清理工具
 def flush_memory():
@@ -21,25 +36,9 @@ if DEVICE == "cuda":
 else:
     print("--- 警告: 未偵測到 GPU，將使用 CPU 運算 (速度會慢很多)。 ---")
 
-# --- 2. 設定參數與路徑 ---
 
-# 🚨 模型本地資料夾路徑 (根據您的要求修改)
-SDXL_MODEL_PATH = r"\\MSI\sdxl_base"
-
-# 輸入檔案路徑 (與 .py 腳本相同目錄)
-POSITIVE_PROMPT_INPUT_FILE = "positive_prompt.txt"
-# 設定 Negative Prompt (可根據需求修改)
-NEGATIVE_PROMPT_INPUT_FILE = "negative_prompt.txt"
-
-# 輸出目錄路徑 (當前目錄下的 'image' 資料夾)
-IMAGE_OUTPUT_DIR = os.path.join(os.getcwd(), "image")
-IMAGE_OUTPUT_FILENAME = "generated_image_2.png"
-
-# 確保輸出目錄存在
-os.makedirs(IMAGE_OUTPUT_DIR, exist_ok=True)
 
 print(f"\n✅ 期望的 SDXL 模型路徑: {SDXL_MODEL_PATH}")
-print(f"✅ 圖像輸出目錄: {IMAGE_OUTPUT_DIR}")
 print(f"✅ 圖像輸出檔案: {IMAGE_OUTPUT_FILENAME}\n")
 
 
@@ -121,7 +120,7 @@ try:
     ).images[0]
 
     # 儲存到輸出目錄
-    output_path = os.path.join(IMAGE_OUTPUT_DIR, IMAGE_OUTPUT_FILENAME)
+    output_path = IMAGE_OUTPUT_FILENAME
     image.save(output_path)
     print(f"\n✅ 圖像生成成功並儲存到: {output_path}")
 

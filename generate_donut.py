@@ -1,6 +1,16 @@
 from PIL import Image, ImageDraw, ImageOps
 import os
 
+# --- 範例使用 (請務必將路徑替換成您實際的檔案路徑) ---
+TASK = "task_20251213_045454"
+
+# 您的輸入檔案
+IMAGE_PATH = f"images\\generated_images\\generated_image_{TASK}.png" # 原始圖片 (背景)
+MASK_PATH = r"images\mask.png" # 遮罩圖片 (前景/偵照)
+
+# 輸出檔案
+FINAL_OUTPUT = f"images\\donut\\donut_{TASK}.png"# 最終成品
+
 # --- 1. 圖片合併功能 (來自 merge.py) ---
 
 def merge_images_with_mask(target_image_path, mask_path, output_path):
@@ -137,15 +147,6 @@ def main_process(target_image_path, mask_path, final_output_path, temp_output_pa
     except OSError as e:
         print(f"清理暫存文件失敗: {e}")
 
-
-# --- 範例使用 (請務必將路徑替換成您實際的檔案路徑) ---
-
-# 您的輸入檔案
-IMAGE_PATH = 'C:\Computer_network\image\generated_image_2.png' # 原始圖片 (背景)
-MASK_PATH = 'mask.png' # 遮罩圖片 (前景/偵照)
-
-# 輸出檔案
-FINAL_OUTPUT = 'final_donut_with_mask.png' # 最終成品
 
 # 執行主程序
 main_process(IMAGE_PATH, MASK_PATH, FINAL_OUTPUT)
