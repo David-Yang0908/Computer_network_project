@@ -52,7 +52,7 @@ def merge_images_with_mask(target_image_path, mask_path, output_path):
 # --- 2. 甜甜圈裁切功能 (來自 generate_donut.py) ---
 
 def crop_to_donut(image_path, output_path, outer_radius=None, inner_radius_ratio=0.5):
-    """
+    """ 
     將指定路徑的圖片裁剪成甜甜圈形狀，並儲存為 PNG 格式。
     
     Args:
