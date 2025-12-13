@@ -69,7 +69,7 @@ if __name__ == '__main__':
     # input_routine("日文課", "2025-12-15", "09:00", "12:00", 4, 3, 2)
     
     # 測試 3: 刪除任務 (請填入真實存在的 ID)
-    # delete_event("62418f63ec4c3901")
+    delete_event("107fbcb29b90ae0b")
 
     # 測試 4: 執行 AI
     # run_ai_decomposition()
