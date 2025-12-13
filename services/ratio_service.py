@@ -12,7 +12,7 @@ OUTPUT_RATIO_DIR = os.path.join("images", "donut_ratio")    # 合成圖輸出
 OUTPUT_CUT_DIR = os.path.join("images", "donut_cut")        # 純裁切圖輸出
 
 # 參數設定
-FULL_SCORE = 500.0        # 滿分分數 (對應 360 度)
+FULL_SCORE = 300.0        # 滿分分數 ( 對應 360 度)
 START_ANGLE_PIL = 270.0   # 起始角度 (PIL 角度 270 = 正上方 12 點鐘方向)
 INNER_RADIUS_RATIO = 0.5  # 內圓半徑比例
 
