@@ -11,7 +11,7 @@ import math
 GLOBAL_INPUT_FILE = 'json/all_tasks_input.json'    # 狀態檢查與更新 (Array)
 GLOBAL_OUTPUT_FILE = 'json/all_tasks_output.json'   # 內容、分數與路徑儲存 (Dict)
 
-# 圖片目錄 (僅供建構輸出路徑，輸入路徑從 Output 檔讀取)
+# 圖片目錄  (僅供建構輸出路徑，輸入路徑從 Output 檔讀取)
 OUTPUT_RATIO_DIR = os.path.join("images", "donut_ratio")    # 合成圖輸出
 OUTPUT_CUT_DIR = os.path.join("images", "donut_cut")        # 純裁切圖輸出
 
