@@ -77,6 +77,26 @@ def delete_event_route():
     except Exception as e:
         return jsonify({"success": False, "message": f"刪除事件失敗: {e}"}), 500
 
+# --- 6. 標記事件完成 (POST) ---
+@app.route('/complete_event', methods=['POST'])
+def complete_event_route():
+    try:
+        event_id = request.form.get('event_id')
+        status_str = request.form.get('completion_status')
+        
+        if not event_id or status_str is None:
+            return jsonify({"success": False, "message": "缺少 event_id 或 completion_status 參數"}), 400
+        
+        completion_status = float(status_str)
+        
+        # 呼叫 functions.py 裡的新功能
+        functions.complete_event(event_id, completion_status)
+        
+        return jsonify({"success": True, "message": f"事件 ID {event_id} 已標記為 {completion_status*100:.0f}% 完成，並記錄到 {task_complete.PROMPT_FILE}。"}), 200
+    except ValueError:
+        return jsonify({"success": False, "message": "completion_status 必須是數字 (0.0~1.0)"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": f"標記完成失敗: {e}"}), 500
 
 if __name__ == '__main__':
     # 在執行前，建議先在 functions.py 確保 DataManager 已經初始化
