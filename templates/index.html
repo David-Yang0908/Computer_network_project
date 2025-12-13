@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        .form-section { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .form-section h3 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 8px; margin: 5px 0 10px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>排程 AI 控制面板</h1>
+        <p>今天是：{{ today_date }}</p>
+
+        <div class="form-section">
+            <h3>新增單次任務 (Add Task)</h3>
+            <form action="{{ url_for('add_task_route') }}" method="post">
+                <label for="name">任務名稱:</label>
+                <input type="text" id="name" name="name" required><br>
+
+                <label for="date">日期 (YYYY-MM-DD):</label>
+                <input type="date" id="date" name="date" required value="{{ today_date }}"><br>
+                
+                <label for="is_fixed">固定時間? (y/n):</label>
+                <select id="is_fixed" name="is_fixed">
+                    <option value="n">N (待辦事項 - 需填寫預估小時)</option>
+                    <option value="y">Y (固定行程 - 需填寫起訖時間)</option>
+                </select><br>
+
+                <label for="start_time">起始時間 (HH:MM):</label>
+                <input type="time" id="start_time" name="start_time"><br>
+
+                <label for="end_time">結束時間 (HH:MM):</label>
+                <input type="time" id="end_time" name="end_time"><br>
+
+                <label for="estimated_time">預估小時 (非固定任務):</label>
+                <input type="text" id="estimated_time" name="estimated_time" value="1.0"><br>
+
+                <label for="priority">優先級 (1-5):</label>
+                <input type="text" id="priority" name="priority" value="3"><br>
+
+                <button type="submit">新增任務並同步至 GCal</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h3>AI 排程控制</h3>
+            <p>
+                <button onclick="fetch('/run_ai_decompose')">🤖 執行 Phase 1 (任務分解)</button>
+                <br><small>將高難度任務拆解為子任務，並新增到 tasks.json 和 GCal。</small>
+            </p>
+            <p>
+                <button onclick="fetch('/run_ai_schedule')">🤖 執行 Phase 2 (日排程)</button>
+                <br><small>排程今天的 To-Do List 並寫入 calendar.json。</small>
+            </p>
+        </div>
+
+        <div class="form-section">
+            <h3>刪除事件 (Delete by ID)</h3>
+            <input type="text" id="delete_id" placeholder="輸入要刪除的 event_id">
+            <button onclick="deleteEvent()">🗑️ 刪除</button>
+            <p id="delete-status"></p>
+        </div>
+    </div>
+
+    <script>
+        function deleteEvent() {
+            const id = document.getElementById('delete_id').value;
+            const statusDiv = document.getElementById('delete-status');
+            
+            if (!id) {
+                statusDiv.innerText = '請輸入事件 ID！';
+                return;
+            }
+
+            fetch('/delete_event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `event_id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                statusDiv.innerText = data.message;
+                if (data.success) {
+                    statusDiv.style.color = 'green';
+                } else {
+                    statusDiv.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerText = `發生網路錯誤: ${error}`;
+                statusDiv.style.color = 'red';
+            });
+        }
+        
+        // 簡單處理 AI 啟動的回覆
+        function fetch(url) {
+            window.alert(`正在呼叫 ${url}，請查看終端機 (Terminal) 輸出結果...`);
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                window.alert(`操作完成：${data.message}`);
+                console.log(data);
+            })
+            .catch(error => {
+                window.alert(`操作失敗：${error}`);
+            });
+        }
+    </script>
+</body>
+</html>
