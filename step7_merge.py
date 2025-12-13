@@ -18,7 +18,7 @@ NOT_COMPLETE_DIR = os.path.join("images", "not_complete")
 UNUSED_DIR = os.path.join("images", "unused")       # [新增] 未用片段圖片目錄
 
 # 參數設定
-FULL_SCORE = 300.0        # 滿分分數 (對應 360 度)
+FULL_SCORE = 500.0        # 滿分分數 (對應 360 度)
 START_ANGLE_PIL = 270.0   # 起始角度 (PIL 角度 270 = 正上方)
 INNER_RADIUS_RATIO = 0.5  # 內圓半徑比例
 
