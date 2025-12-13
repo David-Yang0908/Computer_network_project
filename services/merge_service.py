@@ -17,7 +17,7 @@ NOT_COMPLETE_DIR = os.path.join("images", "not_complete")
 UNUSED_DIR = os.path.join("images", "unused")       
 
 # 參數設定 (與 Step 6 保持一致)
-FULL_SCORE = 300.0        
+FULL_SCORE = 500.0        
 START_ANGLE_PIL = 270.0   
 INNER_RADIUS_RATIO = 0.5  
 
