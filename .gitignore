@@ -3,3 +3,18 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+
+# --- 忽略圖片設定 ---
+# 忽略所有常見圖片格式
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+
+# --- 例外規則 (這些不要忽略) ---
+# 強制追蹤 mask.png
+!mask.png
+
+# 強制追蹤 empty.txt (為了保留資料夾結構)
+!empty.txt
