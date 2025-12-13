@@ -58,7 +58,8 @@ def run_ai_decomposition_route():
 @app.route('/run_ai_schedule', methods=['GET'])
 def run_ai_scheduling_route():
     try:
-        target_date = request.args.get('date', datetime.now().strftime("%Y-%m-%d"))
+        # target_date = request.args.get('date', datetime.now().strftime("%Y-%m-%d"))
+        target_date = "2025-12-15"
         functions.run_ai_scheduling(target_date)
         return jsonify({"success": True, "message": f"AI 日排程 (Phase 2) 已為 {target_date} 完成排程，並寫入 calendar.json。"}), 200
     except Exception as e:

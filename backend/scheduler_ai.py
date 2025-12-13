@@ -96,7 +96,7 @@ def execute_phase1_logic():
     manager = DataManager()
     all_tasks = manager._read_json("tasks.json", default_type='list')
     
-    target = next((t for t in all_tasks if t.get('difficulty', 0) >= 4 and not t.get('has_generated_subtasks')), None)
+    target = next((t for t in all_tasks if t.get('difficulty', 0) >= 4 and t.get('parent_id') == None and not t.get('has_generated_subtasks')), None)
     
     if target:
         today = datetime.now().strftime("%Y-%m-%d")

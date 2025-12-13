@@ -40,7 +40,8 @@
         "importance": 5,
         "difficulty": 5,
         "is_fixed": true,
-        "status": 0
+        "status": 0,
+        "has_generated_subtasks": true
     },
     {
         "name": "製作簡報內容與視覺設計",
