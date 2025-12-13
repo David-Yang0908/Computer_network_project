@@ -11,7 +11,7 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 QWEN_MODEL_NAME = os.getenv("GROQ_MODEL") 
 
-CALENDAR_FILE = "./backend/dataset/calendar.json"
+CALENDAR_FILE_NAME = "calendar.json"
 
 class SmartSchedulerGroq:
     def __init__(self):
@@ -169,7 +169,7 @@ def execute_phase2_logic(target_date: str = None):
     # 3. 寫入 calendar.json (本地排程檔案)
     update_calendar_for_date(target_date, calendar_entries)
 
-    print(f"\n✅ {target_date} 的最終排程已寫入 {CALENDAR_FILE}。")
+    print(f"\n✅ {target_date} 的最終排程已寫入 {CALENDAR_FILE_NAME}。")
     for item in calendar_entries:
         item_id = item.get('id', 'N/A')
         print(f"{item['start_time']}-{item['end_time']} | {item['name']} (ID: {item_id[:8]}...)")
@@ -181,7 +181,7 @@ def update_calendar_for_date(target_date, new_entries):
     temp_manager = DataManager()
     
     # [修復點]: 確保讀取 calendar.json 時，預設為 'dict'
-    calendar_data = temp_manager._read_json(CALENDAR_FILE, default_type='dict') 
+    calendar_data = temp_manager._read_json(CALENDAR_FILE_NAME, default_type='dict') 
         
     # 將日期格式統一為 YYYY-MM-DD
     target_date_key = target_date.replace('/', '-') 
@@ -189,4 +189,4 @@ def update_calendar_for_date(target_date, new_entries):
     # 安全寫入字典
     calendar_data[target_date_key] = new_entries
     
-    temp_manager._write_json(calendar_data, CALENDAR_FILE)
+    temp_manager._write_json(calendar_data, CALENDAR_FILE_NAME)

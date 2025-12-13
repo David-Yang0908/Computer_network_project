@@ -4,9 +4,9 @@ import os
 from backend.data_manager import DataManager
 
 # 假定您希望寫入的另一個 JSON 檔案名
-PROMPT_FILE = './backend/dataset/task_input_sample.json' 
-TASKS_FILE = "./backend/dataset/tasks.json"
-ROUTINE_FILE = "./backend/dataset/routine.json"
+PROMPT_FILE = 'task_input_sample.json' 
+TASKS_FILE = "tasks.json"
+ROUTINE_FILE = "routine.json"
 
 # --- 內部輔助函式 (來自 input_json_generator.py 的邏輯) ---
 

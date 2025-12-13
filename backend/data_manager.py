@@ -4,20 +4,32 @@ import os
 # 假設 google_service.py 和 task_input_tool.py 的內容如前所述
 from backend.google_service import GoogleCalendarService 
 # from task_input_tool import generate_base32hex_id # 如果 DataManager 不直接調用 ID，這裡不需要
+BASE_DIR = os.path.join(os.path.dirname(__file__), 'dataset')
 
-TASKS_FILE = "./backend/dataset/tasks.json"
-ROUTINE_FILE = "./backend/dataset/routine.json"
+TASKS_FILE = os.path.join(BASE_DIR, "tasks.json")
+ROUTINE_FILE = os.path.join(BASE_DIR, "routine.json")
+CALENDAR_FILE = os.path.join(BASE_DIR, "calendar.json")
 
 class DataManager:
     def __init__(self):
         self.gcal = GoogleCalendarService()
 
-    def _read_json(self, filename, default_type='list'):
+    def _read_json(self, filename_key: str, default_type='list'):
         """
         通用的 JSON 讀取函式。
         default_type='list'：tasks.json, routine.json (空時回傳 [])
         default_type='dict'：calendar.json (空時回傳 {})
         """
+        # 根據傳入的鍵 (例如 "tasks.json") 獲取完整的檔案路徑
+        if filename_key == "tasks.json":
+            filename = TASKS_FILE
+        elif filename_key == "routine.json":
+            filename = ROUTINE_FILE
+        elif filename_key == "calendar.json":
+            filename = CALENDAR_FILE
+        else:
+            # 應急處理，如果傳入的不是已知的檔案名，則假設為相對路徑
+            filename = filename_key
         if not os.path.exists(filename): 
             return [] if default_type == 'list' else {}
         try:
@@ -27,7 +39,16 @@ class DataManager:
             # 讀取失敗時，根據預設類型回傳空結構，避免程式崩潰
             return [] if default_type == 'list' else {}
 
-    def _write_json(self, data, filename):
+    def _write_json(self, data, filename_key):
+        if filename_key == "tasks.json":
+            filename = TASKS_FILE
+        elif filename_key == "routine.json":
+            filename = ROUTINE_FILE
+        elif filename_key == "calendar.json":
+            filename = CALENDAR_FILE
+        else:
+            filename = filename_key
+            
         try:
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
