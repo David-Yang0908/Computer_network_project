@@ -1,0 +1,16 @@
+[
+    {
+        "event_id": "b76217b60617b204",
+        "parent_id": null,
+        "name": "期末專題簡報",
+        "date": "2025-12-20",
+        "start_time": "14:00",
+        "end_time": "16:00",
+        "estimated_hours": 0.0,
+        "priority": 5,
+        "importance": 5,
+        "difficulty": 5,
+        "is_fixed": true,
+        "status": "pending"
+    }
+]
