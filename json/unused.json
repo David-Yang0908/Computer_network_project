@@ -36,7 +36,12 @@
     },
     "unused_20251214_020813": {
         "unused_path": "images\\unused\\unused_20251214_020813.png",
-        "reuse_status": false,
+        "reuse_status": true,
         "score": 49.04
+    },
+    "unused_20251214_041620": {
+        "unused_path": "images\\unused\\unused_20251214_041620.png",
+        "reuse_status": false,
+        "score": 220.15
     }
 }

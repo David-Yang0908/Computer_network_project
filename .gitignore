@@ -14,6 +14,7 @@ venv/
 
 # --- 例外規則 (這些不要忽略) ---
 # 強制追蹤 mask.png
+!masks/mask.png
 !mask.png
 
 # 強制追蹤 empty.txt (為了保留資料夾結構)

@@ -97,7 +97,7 @@
         "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_003027_719286.png",
         "cut_path": "images\\donut_cut\\donut_cut_task_20251214_003027_719286.png"
     },
-    "latest_merged_donut": "images\\merged\\donut_merged_20251214_020813.png",
+    "latest_merged_donut": "images\\merged\\donut_merged_20251214_041620.png",
     "task_20251214_014920_568929": {
         "task_id": "task_20251214_014920_568929",
         "task_name": "看牙醫",
@@ -251,5 +251,33 @@
         "gray_path": "images\\donut_gray\\donut_gray_task_20251214_020242_785058.png",
         "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_020242_785058.png",
         "cut_path": "images\\donut_cut\\donut_cut_task_20251214_020242_785058.png"
+    },
+    "task_20251214_034948_641554": {
+        "task_id": "task_20251214_034948_641554",
+        "task_name": "撰寫 API 文件",
+        "total_score": 241.61,
+        "incentive_score": 245.81,
+        "penalty_score": -4.2,
+        "positive_prompt": "Geometric abstraction of API documentation, vibrant blue and green lines forming interconnected nodes, futuristic cityscape, data visualization, tech-chic UI",
+        "negative_prompt": "Photorealistic office setting, human faces, 3D renders, detailed anatomy, natural landscapes",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_034948_641554.png",
+        "donut_path": "images\\donut\\donut_task_20251214_034948_641554.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_034948_641554.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_034948_641554.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_034948_641554.png"
+    },
+    "task_20251214_041108_978396": {
+        "task_id": "task_20251214_041108_978396",
+        "task_name": "清理電子郵件收件箱",
+        "total_score": 27.9,
+        "incentive_score": 45.9,
+        "penalty_score": -18.0,
+        "positive_prompt": "Geometric Abstraction, Simple, Vector Lines, Sorting Icons, Clean Email, Inbox, Minimalist UI",
+        "negative_prompt": "Photorealism, Textured, Cluttered, Overwhelmed, Human Figures, 3D Email Icons, Colorful Noise",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_034948_656569.png",
+        "donut_path": "images\\donut\\donut_task_20251214_034948_656569.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_034948_656569.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_041108_978396.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_041108_978396.png"
     }
 }
