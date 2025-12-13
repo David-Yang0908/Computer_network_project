@@ -17,7 +17,7 @@ NOT_COMPLETE_DIR = os.path.join("images", "not_complete")
 UNUSED_DIR = os.path.join("images", "unused")       
 
 # 參數設定 (與 Step 6 保持一致)
-FULL_SCORE = 500.0        
+FULL_SCORE = 300.0        
 START_ANGLE_PIL = 270.0   
 INNER_RADIUS_RATIO = 0.5  
 
@@ -126,7 +126,7 @@ def execute_step7(tasks_input, tasks_output, unused_data):
     for task_input in tasks_input:
         
         # 僅處理尚未合併 (merged_status=False) 且 Cut 圖已準備好的任務
-        if task_input.get('merged_status') is True:
+        if task_input.get('merge_status') is True:
             continue
             
         task_id = task_input.get('task_id')
@@ -154,7 +154,7 @@ def execute_step7(tasks_input, tasks_output, unused_data):
             canvas.paste(current_img, (0, 0), mask)
             
             # 更新狀態
-            task_input['merged_status'] = True
+            task_input['merge_status'] = True
             tasks_modified_this_run.append(task_input)
             
             accumulated_score += task_score
@@ -178,7 +178,7 @@ def execute_step7(tasks_input, tasks_output, unused_data):
             fill_mask = create_sector_mask(canvas_size, draw_start_fill, draw_end_fill)
             canvas.paste(current_img, (0, 0), fill_mask)
             
-            task_input['merged_status'] = True
+            task_input['merge_status'] = True
             tasks_modified_this_run.append(task_input)
             processed_count += 1
             
@@ -246,7 +246,7 @@ def execute_step7(tasks_input, tasks_output, unused_data):
             
             # 回滾：將本次修改為 merged 的任務設回 False
             for t in tasks_modified_this_run:
-                t['merged_status'] = False
+                t['merge_status'] = False
                 
             # active_unused_key 的 reuse_status 保持 False
 
