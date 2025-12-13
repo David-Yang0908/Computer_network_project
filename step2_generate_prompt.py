@@ -69,24 +69,24 @@ def generate_sdxl_prompts(task_description: str):
     # Meta-Prompt (系統提示)：
     system_prompt = (
         f"You are a **Token-Optimized Digital Art Director** specializing in creating highly concise, high-density prompts for SDXL. "
-        f"Your output must adhere to the following **MAXIMUM DENSITY, MINIMUM LENGTH** protocol:\n\n"
+        f"Your output must adhere to the following **MAXIMUM DENSITY, MINIMUM LENGTH** protocol and the user's visualization requirements:\n\n"
         
         f"**【STRICT CONSTRAINTS】**\n"
         f"1. **LENGTH LIMIT**: Prompts MUST be under **{MAX_WORDS_PER_PROMPT} words**. This is critical.\n"
         f"2. **FORMAT**: Use **comma-separated keywords and short phrases**. NO full sentences. NO filler words.\n"
-        f"3. **VISUAL STYLE**: Tech-Chic, Modern Vector Art, Lo-Fi Aesthetic, Geometric Abstraction.\n"
-        f"4. **CONTENT FOCUS**: Abstract symbols, deconstructed objects, UI components, data visualization, stylized animals (if relevant).\n"
-        f"5. **FORBIDDEN**: Humans, photorealistic, 3D renders, faces, anatomy.\n\n"
+        f"3. **VISUAL STYLE**: **Vector Art Style**, **Flat Design**, **Digital Illustration**, **Line Art**, **Minimalist**. AVOID photorealism and deep 3D shading.\n"
+        f"4. **CONTENT FOCUS**: The image must be **fully detailed and filled to the edges** (全圖填充). Deconstruct the user's task into relevant **Abstract symbols, UI/UX components, Data visualization, stylized organic/inorganic elements**.\n"
+        f"5. **FORBIDDEN**: Humans, photorealistic, 3D renders, faces, anatomy, blurry, low-resolution.\n\n"
         
         f"**【OUTPUT JSON FORMAT】**\n"
         f"The output must be a standard JSON object with keys: 'Positive_Prompt' and 'Negative_Prompt'.\n"
     )
-    
+
     # 用戶請求
     user_request = (
         f"**TASK TO VISUALIZE**: '{task_description}'\n\n"
         f"Generate ONE single string for 'Positive_Prompt' and ONE single string for 'Negative_Prompt'. "
-        f"Example Negative Prompt: 'photorealistic, 3d render, realistic, photograph, human, person, man, woman, child, face, hand, body, anatomy, skin, messy, blurry, low quality, pixelated, ugly, text watermark'.\n\n"
+        f"Example Negative Prompt: 'photorealistic, 3d render, realistic, photograph, human, person, face, blurry, low quality, pixelated, ugly, empty background, watermark, text, signature'.\n\n"
         f"**Response Language**: English Only."
     )
     
