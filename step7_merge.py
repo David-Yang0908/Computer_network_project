@@ -18,7 +18,7 @@ NOT_COMPLETE_DIR = os.path.join("images", "not_complete")
 UNUSED_DIR = os.path.join("images", "unused")       # [新增] 未用片段圖片目錄
 
 # 參數設定
-FULL_SCORE = 500.0        # 滿分分數 (對應 360 度)
+FULL_SCORE = 300.0        # 滿分分數  (對應 360 度)
 START_ANGLE_PIL = 270.0   # 起始角度 (PIL 角度 270 = 正上方)
 INNER_RADIUS_RATIO = 0.5  # 內圓半徑比例
 
@@ -147,7 +147,7 @@ def merge_all_segments(tasks_input, tasks_output, unused_data):
         
         # 跳過已合併的任務 (這裡不畫歷史任務，因為我們假設每一輪都是新的拼圖)
         # 如果是 Unused 模式，Unused 圖片本身就包含了之前的歷史殘留
-        if task_input.get('merged_status') is True:
+        if task_input.get('merge_status') is True:
             continue
             
         task_id = task_input.get('task_id')
@@ -184,7 +184,7 @@ def merge_all_segments(tasks_input, tasks_output, unused_data):
             canvas.paste(current_img, (0, 0), mask)
             
             # 更新狀態
-            task_input['merged_status'] = True
+            task_input['merge_status'] = True
             tasks_modified_this_run.append(task_input)
             
             accumulated_score += task_score
@@ -214,7 +214,7 @@ def merge_all_segments(tasks_input, tasks_output, unused_data):
             canvas.paste(current_img, (0, 0), fill_mask)
             
             # 標記當前任務為已合併 (雖然只畫了一半，但在 input list 裡算處理完了)
-            task_input['merged_status'] = True
+            task_input['merge_status'] = True
             tasks_modified_this_run.append(task_input)
             processed_count += 1
             
@@ -305,7 +305,7 @@ def merge_all_segments(tasks_input, tasks_output, unused_data):
             # 回滾：將本次修改為 merged 的任務設回 False
             print(f"🔙 回滾 {len(tasks_modified_this_run)} 個任務狀態。")
             for t in tasks_modified_this_run:
-                t['merged_status'] = False
+                t['merge_status'] = False
                 
             # 注意：active_unused_key 的 reuse_status 保持 False，下次會再次被讀取
 
@@ -331,6 +331,6 @@ if __name__ == "__main__":
         exit()
         
     for t in tasks_input:
-        if 'merged_status' not in t: t['merged_status'] = False
+        if 'merge_status' not in t: t['merge_status'] = False
 
     merge_all_segments(tasks_input, tasks_output, unused_data)
