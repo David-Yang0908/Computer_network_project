@@ -63,13 +63,14 @@ def complete_event(event_id: str, completion_status: float):
 # --- 測試與執行 ---
 if __name__ == '__main__':
     # 測試 1: 新增單次任務 (會上傳 GCal)
-    # input_task("期末專題簡報", "2025-12-20", "y", 5, 5, 5, "14:00", "16:00")
+    # input_task("期末專題簡報", "2025-12-20", "y", 3, 3, 5, "14:00", "16:00")
+    # input_task("新測試", "2025-12-18", "n", 4, 4, 5, Estimated_time=1.0)
     
     # 測試 2: 新增例行公事 (會上傳 GCal 並每週重複)
     # input_routine("日文課", "2025-12-15", "09:00", "12:00", 4, 3, 2)
     
     # 測試 3: 刪除任務 (請填入真實存在的 ID)
-    delete_event("107fbcb29b90ae0b")
+    # delete_event("3d75761373b6634a")
 
     # 測試 4: 執行 AI
     # run_ai_decomposition()
@@ -80,4 +81,6 @@ if __name__ == '__main__':
 
     # 測試刪除功能
     # delete_event("這裡填入_某個事件的_event_id")
+
+    complete_event("18febd7709df7cc1", 0.5)
     pass

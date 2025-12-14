@@ -126,32 +126,34 @@ def execute_phase1_logic():
     all_tasks = manager._read_json("tasks.json", default_type='list') 
     
     # 找一個難度高且未拆解的任務作為目標
-    target = next((t for t in all_tasks if t.get('difficulty', 0) >= 4 and t.get('status', 0.0) < 1.0 and t.get('parent_id') == None), None)
+    targets = [t for t in all_tasks if t.get('difficulty', 0) >= 4 and t.get('status', 0.0) < 1.0 and t.get('parent_id') == None]
     
-    if target:
-        # 檢查是否已存在子任務，避免重複分解 (如果 tasks.json 中沒有 has_generated_subtasks 欄位)
-        if target.get('has_generated_subtasks'):
-             print(f"ℹ️ 任務 '{target['name']}' 已分解過。")
-             return
+    if targets:
+        for target in targets:
+            # 檢查是否已存在子任務，避免重複分解 (如果 tasks.json 中沒有 has_generated_subtasks 欄位)
+            if target.get('has_generated_subtasks'):
+                print(f"ℹ️ 任務 '{target['name']}' 已分解過。")
+                continue
 
-        today = datetime.now().strftime("%Y-%m-%d")
-        scheduler = SmartSchedulerGroq()
-        new_subtasks = scheduler.phase1_decompose_tasks(target, today)
-        
-        if new_subtasks:
-            print(f"🤖 AI 生成了 {len(new_subtasks)} 個子任務，正在同步至 Google Calendar...")
-            for sub in new_subtasks:
-                manager.add_task_data(sub) 
+            today = datetime.now().strftime("%Y-%m-%d")
+            scheduler = SmartSchedulerGroq()
+            new_subtasks = scheduler.phase1_decompose_tasks(target, today)
             
-            # 更新原任務狀態，標記已拆解
-            tasks_now = manager._read_json("tasks.json", default_type='list')
-            for t in tasks_now:
-                if t['event_id'] == target['event_id']:
-                    t['has_generated_subtasks'] = True
-            manager._write_json(tasks_now, "tasks.json")
-            print("✅ Phase 1 任務拆解完成。")
-        else:
-            print("AI 未生成任何子任務。")
+            if new_subtasks:
+                print(f"🤖 AI 生成了 {len(new_subtasks)} 個子任務，正在同步至 Google Calendar...")
+                for sub in new_subtasks:
+                    manager.add_task_data(sub) 
+                
+                # 更新原任務狀態，標記已拆解
+                tasks_now = manager._read_json("tasks.json", default_type='list')
+                for t in tasks_now:
+                    if t['event_id'] == target['event_id']:
+                        t['has_generated_subtasks'] = True
+                manager._write_json(tasks_now, "tasks.json")
+                print("✅ Phase 1 任務拆解完成。")
+            else:
+                print("AI 未生成任何子任務。")
+        return
     else:
         print("ℹ️ 目前沒有需要拆解的高難度任務。")
 
