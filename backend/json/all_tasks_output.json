@@ -1,3 +1,59 @@
 {
-    
+    "task_20251214_213354_255901": {
+        "task_id": "task_20251214_213354_255901",
+        "task_name": "洗衣服",
+        "total_score": 76.5,
+        "incentive_score": 76.5,
+        "penalty_score": -0.0,
+        "positive_prompt": "Soapy, spinning, laundry, detergent, abstract, soft colors, geometric shapes, minimalist pattern",
+        "negative_prompt": "human, face, 3D render, photorealistic, messy, disorganized, dirty clothes",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_213354_255901.png",
+        "donut_path": "images\\donut\\donut_task_20251214_213354_255901.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_213354_255901.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_213354_255901.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_213354_255901.png"
+    },
+    "task_20251214_213354_259009": {
+        "task_id": "task_20251214_213354_259009",
+        "task_name": "吃薯條",
+        "total_score": 76.5,
+        "incentive_score": 76.5,
+        "penalty_score": -0.0,
+        "positive_prompt": "Crispy Golden Stick, Abstract Fries, Minimalist Snack, Simple Chip Icon, Vector Food Symbol, Geometric Snack, Modern Appetite, Cute Favourite, UI Button, Flat Design",
+        "negative_prompt": "Photorealistic Food, Human Eating, 3D Chip, Face, Anatomy, Messy Eating, High Detail, Dark Colors, Old Design",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_213354_259009.png",
+        "donut_path": "images\\donut\\donut_task_20251214_213354_259009.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_213354_259009.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_213354_259009.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_213354_259009.png"
+    },
+    "task_20251214_213354_274937": {
+        "task_id": "task_20251214_213354_274937",
+        "task_name": "期末專題簡報",
+        "total_score": 186.73,
+        "incentive_score": 186.73,
+        "penalty_score": -0.0,
+        "positive_prompt": "Tech-Chic, Geometric Abstraction, Minimalist, Data Visualization, Charts, Infographics, Colorful Dots, Glowing Lines, Final Project, Presentation, Vector Art, High Contrast, Bold Typography",
+        "negative_prompt": "Humans, Photorealistic, 3D Renders, Faces, Anatomy, Realism, Cluttered, Low Contrast, Simple Shapes",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_213354_274937.png",
+        "donut_path": "images\\donut\\donut_task_20251214_213354_274937.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_213354_274937.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_213354_274937.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_213354_274937.png"
+    },
+    "task_20251214_213354_290450": {
+        "task_id": "task_20251214_213354_290450",
+        "task_name": "晨跑",
+        "total_score": 85.5,
+        "incentive_score": 85.5,
+        "penalty_score": -0.0,
+        "positive_prompt": "Morning jog trail running sunrise jogger's path vector graphics abstract exercise motivation, jogging, running, trail, sunrise, morning, motivation, abstract, vector, exercise, green, blue, yellow",
+        "negative_prompt": "crowded city streets, human, faces, anatomy, 3D renders, photorealistic, buildings, cars, trees, realistic, distracting, messy",
+        "image_path": "images\\generated_images\\generated_image_task_20251214_213354_290450.png",
+        "donut_path": "images\\donut\\donut_task_20251214_213354_290450.png",
+        "gray_path": "images\\donut_gray\\donut_gray_task_20251214_213354_290450.png",
+        "ratio_path": "images\\donut_ratio\\donut_ratio_task_20251214_213354_290450.png",
+        "cut_path": "images\\donut_cut\\donut_cut_task_20251214_213354_290450.png"
+    },
+    "latest_merged_donut": "images\\not_complete\\not_complete_20251214_213639.png"
 }
