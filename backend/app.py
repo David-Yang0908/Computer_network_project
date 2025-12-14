@@ -1,21 +1,69 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, url_for
+import os
+import json
+import time
+import sys
+from datetime import datetime, timedelta
+import random
+import shutil 
+
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for,send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime, timedelta
-import random
-import os
+
 
 # Scheduler Imports
 from schedular import functions
 from schedular.services import task_complete
+from schedular.services.scheduler_ai import SmartSchedulerGroq
 from schedular.services.data_manager import DataManager, TASKS_FILE
+
+# 圖像處理依賴
+try:
+    from PIL import Image
+except ImportError:
+    # 僅提醒，不強制停止 (Step 3/4/5/6/7 會失敗)
+    print("⚠️ 缺少 PIL (Pillow) 模組，圖像相關步驟將無法運行。", file=sys.stderr)
+    pass
+
+# --- 甜甜圈服務導入 ---
+try:
+    # ⚠️ 確保 generate_donut 資料夾內有 __init__.py 檔案
+    from generate_donut.score_service import execute_step1 
+    from generate_donut.prompt_service import execute_step2 
+    from generate_donut.image_service import execute_step3 
+    from generate_donut.donut_service import execute_step4 
+    from generate_donut.gray_service import execute_step5 
+    from generate_donut.ratio_service import execute_step6 
+    from generate_donut.merge_service import execute_step7 
+except ImportError as e:
+    print(f"⚠️ 導入甜甜圈服務模組失敗。請檢查 generate_donut 資料夾結構和 __init__.py: {e}", file=sys.stderr)
+
+
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuration
+# --- 甜甜圈服務配置 (JSON 檔案) ---
+# 實際處理流程的輸入檔案 (用於 Step 1~7)
+GLOBAL_INPUT_FILE = 'json/all_tasks_input.json' 
+GLOBAL_OUTPUT_FILE = 'json/all_tasks_output.json'
+UNUSED_FILE = 'json/unused.json'
+# 固定的導入來源檔案路徑 (新任務輸入)
+IMPORT_SOURCE_FILE = 'schedular/dataset/task_input_sample.json' 
+DIRS_TO_CREATE = [
+    'json', 'images', 'images/generated_images', 'images/donut', 
+    'images/donut_gray', 'images/donut_ratio', 'images/donut_cut',
+    'images/merged', 'images/not_complete', 'images/unused'
+]
+MASK_PATH = os.path.join("images", "mask.png") 
+
+# --- 排程器服務配置 (SQLite 資料庫) ---
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///plan_d.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+
 
 db = SQLAlchemy(app)
 
@@ -72,6 +120,60 @@ class Reward(db.Model):
     cost = db.Column(db.Integer, nullable=False)
     icon = db.Column(db.String(10), default='🎁')
 
+
+# ====================================================
+# C. 通用 I/O 函數 (甜甜圈服務所需)
+# ====================================================
+
+def ensure_dirs():
+    """創建所有必要的目錄和遮罩佔位符"""
+    for dir_name in DIRS_TO_CREATE:
+        os.makedirs(dir_name, exist_ok=True)
+        
+    if not os.path.exists(MASK_PATH):
+        try:
+            # 創建一個 1024x1024 的透明 PNG 佔位符
+            Image.new('RGBA', (1024, 1024), color = (0, 0, 0, 0)).save(MASK_PATH)
+            print(f"💡 創建了遮罩佔位符 {MASK_PATH}。")
+        except:
+            pass
+
+def read_json(file_name, default_if_missing):
+    """讀取 JSON 檔案"""
+    try:
+        if not os.path.exists(file_name):
+            return default_if_missing
+        with open(file_name, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error reading JSON file {file_name}: {e}", file=sys.stderr)
+        return {"error": str(e)}
+
+def write_json(file_name, data):
+    """寫入 JSON 檔案"""
+    try:
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
+        with open(file_name, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        return True
+    except Exception as e:
+        print(f"Error writing JSON file {file_name}: {e}", file=sys.stderr)
+        return False
+
+def _read_and_write_json(input_list, output_dict, unused_data=None):
+    """通用輔助函數：將目前的數據狀態寫回 JSON 檔案"""
+    success_input = write_json(GLOBAL_INPUT_FILE, input_list)
+    success_output = write_json(GLOBAL_OUTPUT_FILE, output_dict)
+    
+    save_status = {"input": success_input, "output": success_output}
+    
+    if unused_data is not None:
+        success_unused = write_json(UNUSED_FILE, unused_data)
+        save_status["unused"] = success_unused
+        
+    return save_status
+
+
 # --- Init DB ---
 def init_db():
     with app.app_context():
@@ -117,14 +219,20 @@ def calculate_score(estimated_hours, priority, importance, difficulty, start_tim
     i = int(importance)
     d = int(difficulty)
     
-    score = 30 * hours * p * (1 + 0.15 * (i - 3)) * (1 + 0.05 * (d - 3))
+    score = 30 * hours * 1.3 * (1 + 0.15 * (i - 3)) * (1 + 0.05 * (d - 3))
     return int(score)
 
 # --- Routes ---
 
 @app.route('/api/donut_image')
 def get_donut_image():
-    # Target directory for "Goal" donuts
+    # 1. Try to serve the specifically marked "current" donut
+    current_donut = os.path.join(app.root_path, 'images', 'current_donut.png')
+    if os.path.exists(current_donut):
+        print("Use Current Donut")
+        return send_file(current_donut)
+
+    # 2. Target directory for "Goal" donuts (Fallback)
     target_dir = os.path.join(app.root_path, 'images', 'not_complete')
     
     # Create dir if not exists (safety check)
@@ -134,13 +242,29 @@ def get_donut_image():
     files = [f for f in os.listdir(target_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
     
     if files:
-        # Pick a random one or logic based on user level
-        # For now, random or the first one
-        selected_image = random.choice(files)
+        # Sort by modification time (newest first)
+        files.sort(key=lambda x: os.path.getmtime(os.path.join(target_dir, x)), reverse=True)
+        selected_image = files[0]
+        print("Use Newest Donut")
         return send_from_directory(target_dir, selected_image)
     
-    # Fallback to default if no incomplete donuts found
+    # 3. Ultimate Fallback
+    print("Use Default Donut")
     return send_from_directory(os.path.join(app.root_path, 'images'), 'donut1.png')
+
+@app.route('/api/donuts/gallery', methods=['GET'])
+def get_donut_gallery():
+    directory = os.path.join(app.root_path, 'images', 'merged')
+    if not os.path.exists(directory):
+        return jsonify([])
+        
+    files = [f for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    files.sort(key=lambda x: os.path.getctime(os.path.join(directory, x)), reverse=True)
+    return jsonify(files)
+
+@app.route('/api/donuts/gallery/<path:filename>')
+def get_gallery_image(filename):
+    return send_from_directory(os.path.join(app.root_path, 'images', 'merged'), filename)
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -150,13 +274,7 @@ def get_user():
         "level": user.level
     })
 
-# Scheduler Imports
-from schedular import functions
-from schedular.services import task_complete
-from schedular.services.scheduler_ai import SmartSchedulerGroq
-from schedular.services.data_manager import DataManager, TASKS_FILE
 
-# ... (Previous code) ...
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_input():
@@ -305,27 +423,6 @@ def get_subtasks(event_id):
         })
     return jsonify(result)
 
-@app.route('/api/tasks/<int:task_id>/complete', methods=['POST'])
-def complete_task(task_id):
-    # Local completion (Dashboard checkbox)
-    task = Task.query.get(task_id)
-    if not task:
-        return jsonify({"error": "Task not found"}), 404
-        
-    if not task.is_completed:
-        task.is_completed = True
-        task.status = 'completed'
-        
-        user = User.query.first()
-        user.score += task.score_value
-        
-        db.session.commit()
-        
-    return jsonify({
-        "message": "Task completed",
-        "new_score": User.query.first().score,
-        "earned": task.score_value
-    })
 
 @app.route('/api/tasks/calendar', methods=['GET'])
 def get_calendar_tasks():
@@ -579,33 +676,216 @@ def complete_event_route():
     try:
         data = request.json if request.is_json else request.form
         event_id = data.get('event_id')
+        task_id = data.get('id')
         status_str = data.get('completion_status')
         
-        if not event_id or status_str is None:
-            return jsonify({"success": False, "message": "缺少 event_id 或 completion_status 參數"}), 400
-        
-        completion_status = float(status_str)
-        
-        # 1. Update Scheduler Logic
+        # Default to 1.0 (100%) if not provided
+        completion_status = float(status_str) if status_str is not None else 1.0
+
         functions.complete_event(event_id, completion_status)
         
+        task = None
+        if event_id:
+            task = Task.query.filter_by(event_id=event_id).first()
+        elif task_id:
+            task = db.session.get(Task, task_id) # Updated for SQLAlchemy 2.0
+            if task: event_id = task.event_id 
+            
+        if not task:
+            return jsonify({"success": False, "message": "Task not found"}), 404
+            
+        # 1. Update Scheduler Logic (Only if event_id exists and is valid)
+        if event_id and str(event_id).lower() not in ['none', 'null', '']:
+            try:
+                functions.complete_event(event_id, completion_status)
+            except Exception as sched_err:
+                print(f"Scheduler update failed (ignoring): {sched_err}")
+        
         # 2. Update Local DB
-        task = Task.query.filter_by(event_id=event_id).first()
-        if task:
-            if completion_status >= 1.0:
+        earned_score = 0
+        if completion_status >= 1.0:
+            if not task.is_completed:
                 task.is_completed = True
                 task.status = 'completed'
-                # Add score if fully complete
+                
+                # Add score logic
                 user = User.query.first()
-                if user and not task.is_completed: # Prevent double scoring
+                if user:
                     user.score += task.score_value
-            db.session.commit()
+                    earned_score = task.score_value
+        else:
+            # Partial completion logic if needed
+            task.status = 'in_progress'
+            
+        db.session.commit()
         
-        return jsonify({"success": True, "message": f"事件 ID {event_id} 完成度更新為 {completion_status*100:.0f}%。"}), 200
+        user = User.query.first()
+        return jsonify({
+            "success": True, 
+            "message": f"Task completed!", 
+            "new_score": user.score if user else 0,
+            "earned": earned_score
+        }), 200
+        
     except ValueError:
-        return jsonify({"success": False, "message": "completion_status 必須是數字 (0.0~1.0)"}), 400
+        return jsonify({"success": False, "message": "Invalid completion_status"}), 400
     except Exception as e:
-        return jsonify({"success": False, "message": f"標記完成失敗: {e}"}), 500
+        return jsonify({"success": False, "message": f"Error completing event: {e}"}), 500
+
+
+# ----------------------------------------------------
+# E2. 甜甜圈/圖像生成服務路由 (/api/donut/...)
+# ----------------------------------------------------
+def import_tasks_from_fixed_file():
+    """
+    從固定的 IMPORT_SOURCE_FILE 讀取任務，並將其追加到 GLOBAL_INPUT_FILE 中。
+    執行成功後，將來源檔案清空。
+    """
+    try:
+        new_tasks = read_json(IMPORT_SOURCE_FILE, [])
+        
+        if not new_tasks or isinstance(new_tasks, dict) or 'error' in new_tasks:
+            return 0, None # 沒有新任務
+
+        if not isinstance(new_tasks, list):
+            return 0, "來源檔案內容不是有效的 JSON 任務列表 (JSON Array)"
+
+        current_input = read_json(GLOBAL_INPUT_FILE, [])
+        if isinstance(current_input, dict) and 'error' in current_input:
+            return 0, "讀取目標輸入檔案失敗"
+
+        cleaned_tasks = []
+        for task in new_tasks:
+            base_task = {k: task.get(k) for k in [
+                'task_name', 'r', 'T_est', 'P', 'I', 'D', 'c', 'mu', 'T_distract', 'T_phone'
+            ]}
+            base_task.update({
+                "task_id": None, "prompt_status": False, "image_status": False,
+                "donut_status": False, "gray_status": False, "ratio_status": False,
+                "cut_status": False, "merged_status": False
+            })
+            if base_task.get('task_name'):
+                 cleaned_tasks.append(base_task)
+
+        if not cleaned_tasks:
+            return 0, "來源檔案中沒有有效的任務數據可以導入。"
+
+        # 1. 寫入新的任務到輸入隊列
+        current_input.extend(cleaned_tasks)
+        if not write_json(GLOBAL_INPUT_FILE, current_input):
+             return 0, "寫入 GLOBAL_INPUT_FILE 失敗"
+
+        # 2. 清空來源檔案，防止重複導入
+        write_json(IMPORT_SOURCE_FILE, []) 
+        
+        return len(cleaned_tasks), None
+        
+    except Exception as e:
+        return 0, f"導入任務失敗: {e}"
+
+
+@app.route('/api/donut/full_pipeline', methods=['POST'])
+def full_pipeline():
+    """
+    Step 0 (自動導入任務) 到 Step 7 的一鍵自動化流程。
+    """
+    if 'execute_step1' not in globals():
+        return jsonify({"error": "甜甜圈服務模組未成功導入，無法執行全流程。"}), 500
+
+    # --- Step 0: 自動導入任務 ---
+    imported_count, import_error = import_tasks_from_fixed_file()
+    if import_error:
+        return jsonify({"error": f"Step 0 (導入任務) 失敗: {import_error}"}), 500
+
+    # 1. 初始化資料
+    input_list = read_json(GLOBAL_INPUT_FILE, []) 
+    output_dict = read_json(GLOBAL_OUTPUT_FILE, {}) 
+    unused_data = read_json(UNUSED_FILE, {})
+    
+    if isinstance(input_list, dict) and 'error' in input_list: return jsonify({"error": "讀取 Input 失敗"}), 500
+    if isinstance(output_dict, dict) and 'error' in output_dict: output_dict = {}
+    if isinstance(unused_data, dict) and 'error' in unused_data: unused_data = {}
+    
+    # 檢查是否還有任何任務或未用片段需要處理
+    if not any(t.get('merged_status') is False for t in input_list) and not any(v.get('reuse_status') is False for v in unused_data.values()):
+        return jsonify({
+            "message": f"所有任務已完成，且無新導入任務 ({imported_count}) 或未用片段可供處理。",
+            "tasks_total_processed": 0,
+            "final_path": output_dict.get('latest_merged_donut'),
+            "save_status": {"input": True, "output": True, "unused": True}
+        }), 200
+
+    groq_api_key = os.getenv("GROQ_API_KEY")
+
+    total_processed_count = 0
+    final_result_path = None
+    
+    pipeline_steps = [
+        ("Step 1: 計算分數", execute_step1, ()), 
+        ("Step 2: 生成 Prompt", execute_step2, (groq_api_key,)),
+        ("Step 3: 生成圖片", execute_step3, ()),
+        ("Step 4: 甜甜圈裁切", execute_step4, ()),
+        ("Step 5: 灰階化", execute_step5, ()),
+        ("Step 6: 扇形裁切與合成", execute_step6, ()),
+    ]
+    
+    for step_name, step_func, step_args in pipeline_steps:
+        if step_func == execute_step2 and not groq_api_key:
+             return jsonify({"error": "環境變數 GROQ_API_KEY 未設定，無法執行 Step 2"}), 500
+
+        print(f"--- 正在執行 {step_name} ---")
+        try:
+            results = step_func(input_list, output_dict, *step_args)
+        except Exception as e:
+            # 捕獲所有步驟執行時的異常
+            return jsonify({"error": f"{step_name} 執行時發生未預期錯誤: {str(e)}", "count": total_processed_count}), 500
+
+        input_list, output_dict, processed_count, error_status = results
+        total_processed_count += processed_count
+
+        if error_status:
+            print(f"❌ {step_name} 失敗: {error_status}")
+            _read_and_write_json(input_list, output_dict)
+            return jsonify({"error": f"{step_name} 失敗: {error_status}", "count": total_processed_count}), 500
+            
+        _read_and_write_json(input_list, output_dict)
+        print(f"✅ {step_name} 成功，處理了 {processed_count} 個任務。")
+
+    #Step 7
+    print("--- 正在執行 Step 7: 合併圓環 ---")
+    results = execute_step7(input_list, output_dict, unused_data)
+    input_list, output_dict, unused_data, processed_count, result_path, error_status = results
+    final_result_path = result_path
+    
+    # Update current donut for dashboard
+    if final_result_path and os.path.exists(final_result_path):
+        try:
+            current_donut_path = os.path.join(app.root_path, 'images', 'current_donut.png')
+            shutil.copy2(final_result_path, current_donut_path)
+            print(f"✅ 更新首頁甜甜圈: {current_donut_path}")
+        except Exception as e:
+            print(f"⚠️ 無法更新首頁甜甜圈: {e}")
+    
+    if error_status:
+        _read_and_write_json(input_list, output_dict, unused_data)
+        return jsonify({"error": f"Step 7 失敗: {error_status}", "count": total_processed_count}), 500
+
+    save_status = _read_and_write_json(input_list, output_dict, unused_data)
+    
+    message = f"全流程完成。導入新任務 {imported_count} 個。"
+    if final_result_path:
+        is_full = "merged" in final_result_path
+        message += f" 圓環狀態 {'已滿' if is_full else '進度暫存'}。"
+        
+    return jsonify({
+        "message": message,
+        "tasks_total_processed": total_processed_count,
+        "final_path": final_result_path,
+        "save_status": save_status
+    }), 200
+    
+
+
 
 if __name__ == '__main__':
     init_db()

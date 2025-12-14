@@ -6,8 +6,14 @@ import '../services/api_service.dart';
 class DonutChart extends StatelessWidget {
   final int score;
   final int level;
+  final int version; // Control image refresh
 
-  const DonutChart({super.key, required this.score, required this.level});
+  const DonutChart({
+    super.key, 
+    required this.score, 
+    required this.level,
+    this.version = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class DonutChart extends StatelessWidget {
                 borderRadius: 100,
                 padding: const EdgeInsets.all(20),
                 child: Image.network(
-                  '${ApiService.baseUrl}/donut_image', // Load from our Backend
+                  '${ApiService.baseUrl}/donut_image?v=$version', // Use version to force refresh
                   fit: BoxFit.contain,
                   // Add a unique key or cache busting if images change dynamically, 
                   // but for now standard caching is fine.

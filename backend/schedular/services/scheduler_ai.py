@@ -14,7 +14,10 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 QWEN_MODEL_NAME = os.getenv("GROQ_MODEL") 
 
 CALENDAR_FILE_NAME  = "./backend/schedular/dataset/calendar.json"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
+TASKS_FILE = os.path.join(DATASET_DIR, "tasks.json")
 class SmartSchedulerGroq:
     def __init__(self):
         if not GROQ_API_KEY or GROQ_API_KEY == "gsk_...":
@@ -168,7 +171,7 @@ Current Time: {current_time}
             # Assuming DataManager handles it correctly via self.TASKS_FILE if properly initialized
             # But let's try standard way if manager._read_json uses filename string
             # Check DataManager.TASKS_FILE availability
-            all_tasks = manager._read_json("tasks.json", default_type='list')
+            all_tasks = manager._read_json(TASKS_FILE, default_type='list')
 
         targets = [t for t in all_tasks if t.get('difficulty', 0) >= 4 and t.get('status', 0.0) < 1.0 and t.get('parent_id') == None]
         
@@ -187,11 +190,11 @@ Current Time: {current_time}
                         manager.add_task_data(sub) 
                     
                     # Update original task status
-                    tasks_now = manager._read_json("tasks.json", default_type='list')
+                    tasks_now = manager._read_json(TASKS_FILE, default_type='list')
                     for t in tasks_now:
                         if t['event_id'] == target['event_id']:
                             t['has_generated_subtasks'] = True
-                    manager._write_json(tasks_now, "tasks.json")
+                    manager._write_json(tasks_now, TASKS_FILE)
                     print("✅ Phase 1 任務拆解完成。")
                 else:
                     print("AI 未生成任何子任務。")
@@ -243,7 +246,7 @@ Current Time: {current_time}
             target_date = datetime.now().strftime("%Y-%m-%d")
         weekday_name = datetime.strptime(target_date, "%Y-%m-%d").strftime("%A")
         
-        all_tasks = manager._read_json("tasks.json", default_type='list')
+        all_tasks = manager._read_json(TASKS_FILE, default_type='list')
         all_routines = manager._read_json("routine.json", default_type='list')
         
         fixed_events = [

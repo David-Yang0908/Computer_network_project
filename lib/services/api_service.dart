@@ -97,6 +97,18 @@ class ApiService {
     throw Exception('Failed to redeem reward');
   }
 
+  Future<String?> generateDonut() async {
+    // This triggers the full pipeline to bake/update the donut
+    final response = await http.post(Uri.parse('$baseUrl/donut/full_pipeline'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['final_path']; // Returns path of the generated image
+    }
+    // If error or not ready, just return null or throw
+    print("Donut generation status: ${response.statusCode}");
+    return null;
+  }
+
   Future<List<String>> fetchDonutGallery() async {
     final response = await http.get(Uri.parse('$baseUrl/donuts/gallery'));
     if (response.statusCode == 200) {
@@ -107,7 +119,9 @@ class ApiService {
 
   Future<int> completeTask(int taskId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/tasks/$taskId/complete'),
+      Uri.parse('$baseUrl/complete_event'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'id': taskId, 'completion_status': 1.0}),
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

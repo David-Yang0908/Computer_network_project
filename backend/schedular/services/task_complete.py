@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from .data_manager import DataManager
+from datetime import datetime, timedelta
 
 # Determine BASE_DIR relative to this file
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -10,26 +11,111 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 
 TASKS_FILE = os.path.join(DATASET_DIR, "tasks.json")
 ROUTINE_FILE = os.path.join(DATASET_DIR, "routine.json")
-PROMPT_FILE = os.path.join(DATASET_DIR, "prompt.json")
+PROMPT_FILE = os.path.join(DATASET_DIR, "task_input_sample.json")
 
-def _write_to_input_sample(event_id, event_data, status, is_routine):
+# --- 內部輔助函式：計算時間差 ---
+
+def _calculate_duration_hours(start_time_str: str, end_time_str: str) -> float:
+    """計算 HH:MM 格式的起訖時間差（以小時為單位）。"""
+    try:
+        if not start_time_str or not end_time_str:
+            return 0.0
+
+        # 解析時間字串，使用基礎日期避免日期錯誤
+        time_format = "%H:%M"
+        start_dt = datetime.strptime(start_time_str, time_format)
+        end_dt = datetime.strptime(end_time_str, time_format)
+
+        # 處理跨午夜情況 (例如 23:00-01:00)
+        if end_dt < start_dt:
+            end_dt += timedelta(days=1)
+
+        duration = end_dt - start_dt
+        # 轉換為小時 (總秒數 / 3600)
+        return duration.total_seconds() / 3600.0
+    except ValueError as e:
+        print(f"⚠️ 時間格式錯誤 ({start_time_str} 或 {end_time_str}): {e}")
+        return 0.0
+
+def _write_to_input_sample(event_id: str, found_event: dict, completion_status: float, is_routine: bool):
     """
-    紀錄完成的任務到 prompt.json
+    將完成的事件資訊轉換為 task_input_sample.json 格式並寫入檔案。
     """
-    manager = DataManager()
-    prompts = manager._read_json(PROMPT_FILE, default_type='list')
-    
-    entry = {
-        "event_id": event_id,
-        "name": event_data.get('name'),
-        "type": "routine" if is_routine else "task",
-        "completion_rate": status,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # --- NEW LOGIC: T_est 計算 ---
+    estimated_hours = found_event.get("estimated_hours")
+    t_est_value = 1 # 預設值為 1 小時
+
+    if estimated_hours is None or estimated_hours == 0.0 or estimated_hours == 0:
+        # 當 estimated_hours 缺失或為 0 時，使用 start_time 和 end_time 計算
+        start_time = found_event.get("start_time")
+        end_time = found_event.get("end_time")
+        
+        calculated_duration = _calculate_duration_hours(start_time, end_time)
+        t_est_value = calculated_duration
+    else:
+        # 使用 event 中原有的 estimated_hours (並確保是整數且至少為 1)
+        # 這裡假設 estimated_hours 已經是小時為單位
+        t_est_value = float(estimated_hours)
+
+    # 根據 task_input_sample.json 的正確欄位名稱建立新項目
+    new_item = {
+        "task_name": found_event.get("name"),
+        # 將 EID 改為 task_id
+        "task_id": None,
+        
+        # 補齊 task_input_sample.json 中所需的狀態和常數欄位
+        "prompt_status": False,
+        "image_status": False,
+        "donut_status": False,
+        "gray_status": False,
+        "ratio_status": False,
+        "cut_status": False,
+        "merge_status": False, # 使用 task_input_sample.json 觀察到的標準欄位
+        "r": 30.0,
+        
+        # 使用 estimated_hours 欄位對應 T_est
+        # 確保取值後轉換為整數 (int)
+        "T_est": t_est_value, # 使用計算後的值"T_est": t_est_value, # 使用計算後的值
+        
+        "P": found_event.get("priority", 3),          # 對應 priority
+        "I": found_event.get("importance", 3),        # 對應 importance
+        "D": found_event.get("difficulty", 3),        # 對應 difficulty
+        "c": completion_status,                       # 傳入的完成度 (0~1)
+        
+        # mu, T_distract, T_phone 保持不變
+        "mu": 1.2,                                    
+        "T_distract": 0,                              
+        "T_phone": 0                                  
+        
+        # 移除 is_routine 欄位，它不在 task_input_sample.json 的標準結構中
     }
     
-    prompts.append(entry)
-    manager._write_json(prompts, PROMPT_FILE)
-    print(f"📝 已記錄到 prompt.json")
+    # 讀取現有數據或初始化為空列表
+    try:
+        if os.path.exists(PROMPT_FILE):
+            # 讀取檔案時必須是 'r' 模式
+            with open(PROMPT_FILE, 'r', encoding='utf-8') as f:
+                sample_data = json.load(f)
+        else:
+            sample_data = []
+    except (FileNotFoundError, json.JSONDecodeError):
+        print(f"⚠️ 檔案 {PROMPT_FILE} 讀取失敗或格式錯誤，將重新創建。")
+        sample_data = []
+
+    # 新增新項目並寫回檔案
+    try:
+        sample_data.append(new_item)
+        with open(PROMPT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(sample_data, f, ensure_ascii=False, indent=4)
+        
+        print(f"✅ 成功將事件 '{new_item['task_name']}'寫入 {PROMPT_FILE} 進行後續處理。")
+        return True
+    except Exception as e:
+        print(f"❌ 寫入 {PROMPT_FILE} 失敗: {e}")
+        return False
+
+
+
 
 def complete_task(event_id: str, completion_status: float):
 

@@ -140,53 +140,108 @@ class DashboardContent extends StatefulWidget {
 }
 
 class _DashboardContentState extends State<DashboardContent> {
+
   final ApiService _api = ApiService();
+
   late Future<UserStats> _userFuture;
+
   late Future<List<Task>> _tasksFuture;
 
+  int _donutVersion = 0; // To force refresh donut image
+
+
+
   @override
+
   void initState() {
+
     super.initState();
+
     _refreshData();
+
   }
+
+
 
   void _refreshData() {
+
     setState(() {
+
       _userFuture = _api.fetchUser();
+
       _tasksFuture = _api.fetchTasks();
+
     });
+
   }
 
+
+
   @override
+
   Widget build(BuildContext context) {
+
     return SafeArea(
+
       child: Column(
+
         crossAxisAlignment: CrossAxisAlignment.start,
+
         children: [
+
           const SizedBox(height: 20),
+
           // --- Top Section: Score & Donut ---
-                        FutureBuilder<UserStats>(
-                          future: _userFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return Center(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const DonutGalleryScreen()));
-                                  },
-                                  child: DonutChart(
-                                    score: snapshot.data!.score,
-                                    level: snapshot.data!.level,
-                                  ),
-                                ),
-                              );
-                            }
-                            return const Center(child: CircularProgressIndicator(color: Colors.white));
-                          },
-                        ),
-                    const Padding(
+
+          FutureBuilder<UserStats>(
+
+            future: _userFuture,
+
+            builder: (context, snapshot) {
+
+              if (snapshot.hasData) {
+
+                return Center(
+
+                  child: GestureDetector(
+
+                    onTap: () {
+
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const DonutGalleryScreen()));
+
+                    },
+
+                    child: DonutChart(
+
+                      score: snapshot.data!.score,
+
+                      level: snapshot.data!.level,
+
+                      version: _donutVersion, // Pass version
+
+                    ),
+
+                  ),
+
+                );
+
+              }
+
+              return const Center(child: CircularProgressIndicator(color: Colors.white));
+
+            },
+
+          ),
+
+          
+
+          const Padding(
+
             padding: EdgeInsets.fromLTRB(24, 30, 24, 10),
+
             child: Text(
+
+
               "Today's Timeline",
               style: TextStyle(
                 color: Colors.white,
@@ -300,14 +355,64 @@ class _DashboardContentState extends State<DashboardContent> {
                                                                                                       }
                                                                                                     },
                                                                                                   ),
-                                                                                                  IconButton(
-                                                                                                    icon: const Icon(Icons.check_circle_outline, color: Colors.white54),
-                                                                                                    onPressed: () async {
-                                                                                                      await _api.completeTask(task.id);
-                                                                                                      _refreshData();
-                                                                                                    },
-                                                                                                  ),
-                                                                                                ],
+                                                                                                                                      IconButton(
+                                                                                                                                        icon: const Icon(Icons.check_circle_outline, color: Colors.white54),
+                                                                                                                                        onPressed: () async {
+                                                                                                                                          // 1. Mark as complete locally and in DB
+                                                                                                                                          await _api.completeTask(task.id);
+                                                                                                                                          _refreshData(); // Immediate UI update for task list
+                                                                                                                                          
+                                                                                                                                          if (context.mounted) {
+                                                                                                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                                                                                                              const SnackBar(
+                                                                                                                                                content: Text("Task Completed! Baking your donut progress... 🍩"),
+                                                                                                                                                duration: Duration(seconds: 3), // Give it some time
+                                                                                                                                              ),
+                                                                                                                                            );
+                                                                                                                                          }
+                                                                                                  
+                                                                                                                                                                                                                          // 2. Trigger Donut Generation (Async)
+                                                                                                  
+                                                                                                                                                                                                                          try {
+                                                                                                  
+                                                                                                                                                                                                                                                                      await _api.generateDonut();
+                                                                                                  
+                                                                                                                                                                                                                                                                      // 3. Refresh again to update the Donut Image on dashboard
+                                                                                                  
+                                                                                                                                                                                                                                                                      setState(() {
+                                                                                                  
+                                                                                                                                                                                                                                                                        _donutVersion = (_donutVersion + 1) % 1000; // Force refresh with modulo
+                                                                                                  
+                                                                                                                                                                                                                                                                        _refreshData();
+                                                                                                  
+                                                                                                                                                                                                                                                                      });
+                                                                                                  
+                                                                                                                                                                                                                            
+                                                                                                  
+                                                                                                                                                                                                                            
+                                                                                                  
+                                                                                                                                                                                                                            if (context.mounted) {
+                                                                                                  
+                                                                                                                                                                                                                               ScaffoldMessenger.of(context).showSnackBar(
+                                                                                                  
+                                                                                                                                                                                                                                const SnackBar(content: Text("Donut Updated! Check it out! ✨")),
+                                                                                                  
+                                                                                                                                                                                                                              );
+                                                                                                  
+                                                                                                                                                                                                                            }
+                                                                                                  
+                                                                                                                                                                                                                          } catch (e) {
+                                                                                                  
+                                                                                                                                                                                                                            debugPrint("Donut bake error: $e");
+                                                                                                  
+                                                                                                                                                                                                                          }
+                                                                                                  
+                                                                                                                                                                                                                        },
+                                                                                                  
+                                                                                                                                                                                                                      ),
+                                                                                                  
+                                                                                                                                                                                  
+                                                                                                                                                                                                                                          ],
                                                                                               )
                                                               
                               
