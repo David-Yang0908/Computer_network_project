@@ -66,7 +66,7 @@ def calculate_plan_d_score(data):
         T_phone = data.get('T_phone', 0.0)
         
         # 執行分數計算公式
-        incentive_S = r * T_est * P * (1 + 0.15 * (I - 3)) * (1 + 0.05 * (D - 3)) * (c ** mu)
+        incentive_S = r * T_est * 1.3 * (1 + 0.15 * (I - 3)) * (1 + 0.05 * (D - 3)) * (c ** mu)
         penalty_P_behavior = (-30.0 * T_distract) + (-6.0 * T_phone)
         total_score = incentive_S + penalty_P_behavior
         
