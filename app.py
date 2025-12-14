@@ -16,13 +16,13 @@ except ImportError:
 
 # --- 導入服務模組 ---
 # 確保您的 services 目錄下有這些檔案
-from services.score_service import execute_step1 
-from services.prompt_service import execute_step2 
-from services.image_service import execute_step3 
-from services.donut_service import execute_step4 
-from services.gray_service import execute_step5 
-from services.ratio_service import execute_step6 
-from services.merge_service import execute_step7 
+from generate_donut.score_service import execute_step1 
+from generate_donut.prompt_service import execute_step2 
+from generate_donut.image_service import execute_step3 
+from generate_donut.donut_service import execute_step4 
+from generate_donut.gray_service import execute_step5 
+from generate_donut.ratio_service import execute_step6 
+from generate_donut.merge_service import execute_step7 
 
 # ----------------------------------------------------
 # 1. 核心設定與路徑
