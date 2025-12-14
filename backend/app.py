@@ -124,23 +124,23 @@ def calculate_score(estimated_hours, priority, importance, difficulty, start_tim
 
 @app.route('/api/donut_image')
 def get_donut_image():
-    # Assumes 'images' folder is in the same directory as app.py
-    return send_from_directory(os.path.join(app.root_path, 'images'), 'donut1.png')
-
-@app.route('/api/donuts/gallery', methods=['GET'])
-def get_donut_gallery():
-    directory = os.path.join(app.root_path, 'images', 'merged')
-    if not os.path.exists(directory):
-        return jsonify([])
+    # Target directory for "Goal" donuts
+    target_dir = os.path.join(app.root_path, 'images', 'not_complete')
+    
+    # Create dir if not exists (safety check)
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
         
-    files = [f for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-    # Sort by creation time (newest first)
-    files.sort(key=lambda x: os.path.getctime(os.path.join(directory, x)), reverse=True)
-    return jsonify(files)
-
-@app.route('/api/donuts/gallery/<path:filename>')
-def get_gallery_image(filename):
-    return send_from_directory(os.path.join(app.root_path, 'images', 'merged'), filename)
+    files = [f for f in os.listdir(target_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    
+    if files:
+        # Pick a random one or logic based on user level
+        # For now, random or the first one
+        selected_image = random.choice(files)
+        return send_from_directory(target_dir, selected_image)
+    
+    # Fallback to default if no incomplete donuts found
+    return send_from_directory(os.path.join(app.root_path, 'images'), 'donut1.png')
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
