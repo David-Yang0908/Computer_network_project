@@ -89,12 +89,58 @@ def init_db():
             db.session.add(Reward(title="休息 30 分鐘", cost=30, icon='💤'))
             db.session.commit()
 
+# --- Helper Functions ---
+def calculate_score(estimated_hours, priority, importance, difficulty, start_time=None, end_time=None):
+    """
+    Calculate score based on user formula:
+    30 * Hours * Priority * (1 + 0.15 * (Imp - 3)) * (1 + 0.05 * (Diff - 3))
+    """
+    hours = float(estimated_hours)
+    
+    # If estimated_hours is 0, try to calculate from start/end time
+    if hours <= 0 and start_time and end_time:
+        try:
+            fmt = "%H:%M"
+            t1 = datetime.strptime(start_time, fmt)
+            t2 = datetime.strptime(end_time, fmt)
+            diff = (t2 - t1).total_seconds() / 3600
+            if diff > 0:
+                hours = diff
+        except:
+            pass
+            
+    # Fallback if still 0
+    if hours <= 0:
+        hours = 1.0
+        
+    p = int(priority)
+    i = int(importance)
+    d = int(difficulty)
+    
+    score = 30 * hours * p * (1 + 0.15 * (i - 3)) * (1 + 0.05 * (d - 3))
+    return int(score)
+
 # --- Routes ---
 
 @app.route('/api/donut_image')
 def get_donut_image():
     # Assumes 'images' folder is in the same directory as app.py
     return send_from_directory(os.path.join(app.root_path, 'images'), 'donut1.png')
+
+@app.route('/api/donuts/gallery', methods=['GET'])
+def get_donut_gallery():
+    directory = os.path.join(app.root_path, 'images', 'merged')
+    if not os.path.exists(directory):
+        return jsonify([])
+        
+    files = [f for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+    # Sort by creation time (newest first)
+    files.sort(key=lambda x: os.path.getctime(os.path.join(directory, x)), reverse=True)
+    return jsonify(files)
+
+@app.route('/api/donuts/gallery/<path:filename>')
+def get_gallery_image(filename):
+    return send_from_directory(os.path.join(app.root_path, 'images', 'merged'), filename)
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
@@ -417,7 +463,14 @@ def add_task_route():
             difficulty=data.get('difficulty', 3),
             is_fixed=data.get('is_fixed', False),
             status=data.get('status', 'pending'),
-            score_value= (data.get('priority',1) + data.get('difficulty',1)) * 5
+            score_value=calculate_score(
+                data.get('estimated_hours', 0),
+                data.get('priority', 3),
+                data.get('importance', 3),
+                data.get('difficulty', 3),
+                data.get('start_time'),
+                data.get('end_time')
+            )
         )
         
         db.session.add(new_task)
@@ -463,7 +516,14 @@ def run_ai_decomposition_route():
                     difficulty=int(jt.get('difficulty', 3)),
                     is_fixed=jt.get('is_fixed', False),
                     status=str(jt.get('status', 'pending')),
-                    score_value= (int(jt.get('priority',1)) + int(jt.get('difficulty',1))) * 5
+                    score_value=calculate_score(
+                        jt.get('estimated_hours', 0),
+                        jt.get('priority', 3),
+                        jt.get('importance', 3),
+                        jt.get('difficulty', 3),
+                        jt.get('start_time'),
+                        jt.get('end_time')
+                    )
                 )
                 db.session.add(new_task)
                 synced_count += 1

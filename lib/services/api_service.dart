@@ -97,6 +97,14 @@ class ApiService {
     throw Exception('Failed to redeem reward');
   }
 
+  Future<List<String>> fetchDonutGallery() async {
+    final response = await http.get(Uri.parse('$baseUrl/donuts/gallery'));
+    if (response.statusCode == 200) {
+      return List<String>.from(json.decode(response.body));
+    }
+    throw Exception('Failed to load gallery');
+  }
+
   Future<int> completeTask(int taskId) async {
     final response = await http.post(
       Uri.parse('$baseUrl/tasks/$taskId/complete'),

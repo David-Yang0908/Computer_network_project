@@ -194,14 +194,14 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
                 ],
                 
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(child: _buildRatingSelector("Priority", _priority, (v) => setState(() => _priority = v))),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildRatingSelector("Importance", _importance, (v) => setState(() => _importance = v))),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                
+                // Attributes - Vertical Stack
+                _buildRatingSelector("Priority", _priority, (v) => setState(() => _priority = v)),
+                const SizedBox(height: 16),
+                
+                _buildRatingSelector("Importance", _importance, (v) => setState(() => _importance = v)),
+                const SizedBox(height: 16),
+                
                 _buildRatingSelector("Difficulty", _difficulty, (v) => setState(() => _difficulty = v)),
                 
                 const SizedBox(height: 30),

@@ -9,6 +9,7 @@ import 'calendar_screen.dart';
 import 'rewards_screen.dart';
 import 'task_detail_screen.dart';
 import '../widgets/add_task_dialog.dart';
+import 'donut_gallery_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -164,22 +165,26 @@ class _DashboardContentState extends State<DashboardContent> {
         children: [
           const SizedBox(height: 20),
           // --- Top Section: Score & Donut ---
-          FutureBuilder<UserStats>(
-            future: _userFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Center(
-                  child: DonutChart(
-                    score: snapshot.data!.score,
-                    level: snapshot.data!.level,
-                  ),
-                );
-              }
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
-            },
-          ),
-          
-          const Padding(
+                        FutureBuilder<UserStats>(
+                          future: _userFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              return Center(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => const DonutGalleryScreen()));
+                                  },
+                                  child: DonutChart(
+                                    score: snapshot.data!.score,
+                                    level: snapshot.data!.level,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const Center(child: CircularProgressIndicator(color: Colors.white));
+                          },
+                        ),
+                    const Padding(
             padding: EdgeInsets.fromLTRB(24, 30, 24, 10),
             child: Text(
               "Today's Timeline",

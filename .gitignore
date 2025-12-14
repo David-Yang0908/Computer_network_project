@@ -111,6 +111,7 @@ backend/schedular/credentials.json
 backend/schedular/token.json
 backend/schedular/dataset/token.json
 backend/.env
+backend/images/merged/
 
 # Optional: Ignore generated datasets if they are not seed data
 # backend/schedular/dataset/*.json
