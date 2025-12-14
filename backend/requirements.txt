@@ -1,0 +1,25 @@
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Cors==4.0.0
+groq
+dotenv
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# 核心 API 框架
+Flask
+Werkzeug  # 雖然是 Flask 的依賴，但程式碼中明確使用了 secure_filename
+
+# 圖像處理
+Pillow
+
+# AI/ML 服務
+diffusers==0.30.0  # 根據您在對話中指定的版本
+
+# AI/ML 服務 - 圖像生成所需 (必須安裝)
+torch
+accelerate
+safetensors
+transformers
+
