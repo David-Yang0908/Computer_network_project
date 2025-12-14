@@ -1,0 +1,8 @@
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Cors==4.0.0
+groq
+dotenv
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
